@@ -1,0 +1,51 @@
+name: "ESP-IDF Manual Build"
+
+on:
+  workflow_dispatch:
+    inputs:
+      path:
+        description: "Project path"
+        default: "examples/get-started/hello_world"
+        required: false
+
+      esp_idf_version:
+        description: "ESP-IDF version"
+        default: "v5.1"
+        required: false
+
+      target:
+        description: "ESP32 target"
+        default: "esp32c3"
+        required: false
+
+      command:
+        description: "Build command"
+        default: "idf.py build"
+        required: false
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+        with:
+          submodules: 'recursive'
+
+      - name: ESP-IDF build
+        uses: espressif/esp-idf-ci-action@v1
+        with:
+          esp_idf_version: ${{ inputs.esp_idf_version }}
+          target: ${{ inputs.target }}
+          path: ${{ inputs.path }}
+          command: ${{ inputs.command }}
+
+      - name: Upload firmware
+        uses: actions/upload-artifact@v4
+        with:
+          name: firmware-${{ inputs.target }}
+          path: |
+            ${{ inputs.path }}/build/*.bin
+            ${{ inputs.path }}/build/bootloader/*.bin
+            ${{ inputs.path }}/build/partition_table/*.bin
